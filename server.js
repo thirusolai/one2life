@@ -16,6 +16,8 @@ import packageRoutes from "./routes/packageRoutes.js";
 import multer from "multer"; // ✅ use ES Module import instead of require
 import path from "path";
 import { fileURLToPath } from "url"; // ✅ Needed for __dirname in ESM
+import expenseRoutes from "./routes/expenseRoutes.js";
+import "./cron/sendWishes.js";
 
 dotenv.config();
 const app = express();
@@ -52,6 +54,8 @@ app.use("/api/subscriptions", subRoutes);
 app.use("/api/followups", followupRoutes);
 app.use("/api/gymbill", gymBillRoutes);
 app.use("/api/packages", packageRoutes);
+app.use("/api/expenses", expenseRoutes);
+
 // Database connection
 mongoose
   .connect(process.env.MONGO_URI)
