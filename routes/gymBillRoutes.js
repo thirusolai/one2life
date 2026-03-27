@@ -77,7 +77,7 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
 const lastMember = await GymBill.findOne({ memberId: { $regex: /^ONE2_/ } })
   .sort({ createdAt: -1 });
 
-let memberId = "ONE2_0001";
+let memberId = "ONE2_5";
 
 if (lastMember && lastMember.memberId) {
   const lastNumber = parseInt(lastMember.memberId.split("_")[1]) || 1;

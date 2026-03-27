@@ -22,8 +22,8 @@ import "./cron/sendWishes.js";
 
 
 const app = express();
-console.log("EMAIL_USER:", process.env.EMAIL_USER);
-console.log("EMAIL_PASS:", process.env.EMAIL_PASS);
+console.log("EMAIL:", process.env.EMAIL_USER);
+console.log("PASS:", process.env.EMAIL_PASS ? "Loaded" : "Missing");
 // ✅ Fix __dirname usage in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
