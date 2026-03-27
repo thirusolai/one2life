@@ -72,6 +72,7 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
    // 🔢 Auto-generate memberId
 const lastMember = await GymBill.findOne({ memberId: { $regex: /^ONE2_/ } })
   .sort({ createdAt: -1 });
+  
 
 let memberId = "ONE2_0001";
 
