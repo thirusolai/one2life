@@ -3,6 +3,18 @@ dotenv.config();
 import nodemailer from "nodemailer";
 import { generateInvoicePDF } from "../utils/generateInvoice.js";
 
+
+// ✅ MOVE THIS UP
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
 export const sendInvoiceMail = async (email, name, bill, profilePic) => {
   try {
     // 1️⃣ Generate PDF
@@ -30,14 +42,6 @@ export const sendInvoiceMail = async (email, name, bill, profilePic) => {
     console.error("❌ Invoice mail error:", err);
   }
 };
-// ================= EMAIL CONFIG =================
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, // Gmail App Password
-  },
-});
 
 // ================= SEND MAIL =================
 const sendMail = async (to, subject, html, attachments = []) => {
