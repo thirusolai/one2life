@@ -69,19 +69,16 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
     if (!req.body || Object.keys(req.body).length === 0)
       return res.status(400).json({ message: "No data provided" });
 
-    // Require memberId
-    if (!req.body.memberId || req.body.memberId.trim() === "") {
-      return res.status(400).json({ message: "Member ID is required" });
-    }
+   // 🔢 Auto-generate memberId
+const lastMember = await GymBill.findOne({ memberId: { $regex: /^ONE2_/ } })
+  .sort({ createdAt: -1 });
 
-    const memberId = req.body.memberId.trim();
+let memberId = "ONE2_5001";
 
-    // Check duplicate memberId
-    const existingBill = await GymBill.findOne({ memberId });
-    if (existingBill) {
-      return res.status(400).json({ message: `Member ID "${memberId}" already exists.` });
-    }
-
+if (lastMember && lastMember.memberId) {
+  const lastNumber = parseInt(lastMember.memberId.split("_")[1]) || 5000;
+  memberId = `ONE2_${lastNumber + 1}`;
+}
     // Ensure valid status
     let status = req.body.status?.trim();
     if (!status || !["Active", "Inactive"].includes(status)) {
@@ -128,20 +125,18 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
     }
 
     // Create new bill
-   const newBill = new GymBill({
-  ...req.body,
+  const { memberId: _, ...rest } = req.body;
+
+const newBill = new GymBill({
+  ...rest,
   memberId,
   status,
   profilePicture,
   admissionCharges: admissionCharges,
-
-  // ⭐ Save payment mode for new client
   initialPaymentMode: req.body.initialPaymentMode,
-
   balance: firstBalance,
   discountAmount: discountAmt,
 });
-
 
     await newBill.save();
 
