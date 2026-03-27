@@ -1,7 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import inquiryRoutes from "./routes/inquiryRoutes.js";
 import trainerRoutes from "./routes/trainerRoutes.js";
@@ -19,9 +20,10 @@ import { fileURLToPath } from "url"; // ✅ Needed for __dirname in ESM
 import expenseRoutes from "./routes/expenseRoutes.js";
 import "./cron/sendWishes.js";
 
-dotenv.config();
-const app = express();
 
+const app = express();
+console.log("EMAIL_USER:", process.env.EMAIL_USER);
+console.log("EMAIL_PASS:", process.env.EMAIL_PASS);
 // ✅ Fix __dirname usage in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

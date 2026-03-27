@@ -4,8 +4,12 @@ import fs from "fs";
 import GymBill from "../models/GymBill.js";
 import Followup from "../models/Followup.js";
 import { generateInvoicePDF } from "../utils/generateInvoice.js";
+import { sendInvoiceMail } from "../utils/mailer.js";
 const router = express.Router();
-
+import {
+  sendNewClientMail,
+  sendRenewalMail
+} from "../utils/mailer.js";
 // ----------------------
 // 🗂️ Multer Configuration
 // ----------------------
@@ -72,13 +76,15 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
    // 🔢 Auto-generate memberId
 const lastMember = await GymBill.findOne({ memberId: { $regex: /^ONE2_/ } })
   .sort({ createdAt: -1 });
-  
 
 let memberId = "ONE2_0001";
 
 if (lastMember && lastMember.memberId) {
-  const lastNumber = parseInt(lastMember.memberId.split("_")[1]) || 5000;
-  memberId = `ONE2_${lastNumber + 1}`;
+  const lastNumber = parseInt(lastMember.memberId.split("_")[1]) || 1;
+
+  const newNumber = (lastNumber + 1).toString().padStart(4, "0");
+
+  memberId = `ONE2_${newNumber}`;
 }
     // Ensure valid status
     let status = req.body.status?.trim();
@@ -141,6 +147,27 @@ const newBill = new GymBill({
 
     await newBill.save();
 
+    const profilePic = newBill.profilePicture?.data
+  ? Buffer.from(newBill.profilePicture.data)
+  : null;
+
+if (newBill.email) {
+  await sendInvoiceMail(
+    newBill.email,
+    newBill.client,
+    newBill,
+    profilePic
+  );
+}
+
+    if (newBill.email) {
+  await sendNewClientMail(
+    newBill.email,
+    newBill.client,
+    newBill.memberId
+  );
+}
+
     res.status(201).json({
       message: "✅ Gym Bill Created Successfully",
       memberId: newBill.memberId,
@@ -184,6 +211,13 @@ router.get("/", async (req, res) => {
 // 🔁 Renew Membership
 // ------------------
 router.put("/renew/:id", async (req, res) => {
+  if (updated.email) {
+  await sendRenewalMail(
+    updated.email,
+    updated.client,
+    updated.endDate
+  );
+}
   try {
     const {
       joiningDate,

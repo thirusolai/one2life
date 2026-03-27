@@ -1,5 +1,9 @@
 import PDFDocument from "pdfkit";
+import path from "path";
+import fs from "fs";
+const logoPath = path.join(process.cwd(), "assets", "logo.jpeg");
 
+console.log("LOGO EXISTS:", fs.existsSync(logoPath));
 export function generateInvoicePDF(bill, profilePicBuffer) {
   return new Promise((resolve, reject) => {
     try {
@@ -15,27 +19,28 @@ export function generateInvoicePDF(bill, profilePicBuffer) {
       // ---------- Header ----------
       const logoSize = 84;
 
-      if (bill.companyLogoBuffer) {
-        try {
-          doc.image(bill.companyLogoBuffer, leftX, y, { width: logoSize, height: logoSize });
-        } catch (e) {}
-      } else {
-        doc.rect(leftX, y, logoSize, logoSize).stroke();
-      }
+    try {
+  doc.image(logoPath, leftX, y, {
+    width: logoSize,
+    height: logoSize,
+  });
+} catch (e) {
+  console.log("Logo error:", e);
+  doc.rect(leftX, y, logoSize, logoSize).stroke();
+}
 
       const rightBlockX = leftX + pageWidth - 300;
       doc.font("Helvetica").fontSize(9).fillColor("#000");
 
-      doc.text("Address: Sample Fitness Center, Chennai", rightBlockX, y, { width: 300, align: "right" });
-      doc.text("Phone: +91 90000 00000", rightBlockX, y + 12, { width: 300, align: "right" });
-      doc.text("Website: https://www.samplefitness.com", rightBlockX, y + 24, { width: 300, align: "right" });
-      doc.text("E-Mail: samplefitness@mail.com", rightBlockX, y + 36, { width: 300, align: "right" });
+      doc.text("Address: 1/134, East Coast Road, Palavakkam, Chennai-41", rightBlockX, y, { width: 300, align: "right" });
+      doc.text("Phone:  +91 97907 10332", rightBlockX, y + 12, { width: 300, align: "right" });
+      doc.text("E-Mail:  geetha300497@gmail.com", rightBlockX, y + 36, { width: 300, align: "right" });
 
       y += Math.max(logoSize, 60) + 16;
 
       // ---------- Section Bar Style (Yellow) ----------
       const sectionBarHeight = 14;
-      const yellow = "#f5c518";
+      const yellow = "#B6B6B6";
 
       const drawSection = (title) => {
         doc.fillColor(yellow).rect(leftX, y, pageWidth, sectionBarHeight).fill();
@@ -116,7 +121,7 @@ export function generateInvoicePDF(bill, profilePicBuffer) {
       const pendingBarY = y;
       const pendingBarHeight = 24;
 
-      doc.fillColor("#d4a017") // dark yellow
+      doc.fillColor("#FF0000") // dark yellow
         .rect(leftX, pendingBarY, pageWidth, pendingBarHeight)
         .fill();
 
@@ -167,7 +172,7 @@ export function generateInvoicePDF(bill, profilePicBuffer) {
           align: "center",
         });
 
-      doc.font("Helvetica").fontSize(10).text("Sample Fitness Center", leftX, doc.page.height - 72, {
+      doc.font("Helvetica").fontSize(10).text("One 2 Lifestyle FItness Studio", leftX, doc.page.height - 72, {
         width: pageWidth,
         align: "center",
       });

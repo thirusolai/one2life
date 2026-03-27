@@ -1,36 +1,37 @@
 import cron from "node-cron";
 import GymBill from "../models/GymBill.js";
-import { sendMail } from "../utils/sendMail.js";
-import { birthdayTemplate, anniversaryTemplate } from "../utils/mailTemplates.js";
+import {
+  sendBirthdayMail,
+  sendAnniversaryMail
+} from "../utils/mailer.js";
 
 cron.schedule("0 9 * * *", async () => {
+  console.log("🎯 Running Wishes Job");
+
   const today = new Date();
   const day = today.getDate();
   const month = today.getMonth() + 1;
 
-  const clients = await GymBill.find();
+  const users = await GymBill.find();
 
-  for (const c of clients) {
-    if (c.dob) {
-      const dob = new Date(c.dob);
-      if (dob.getDate() === day && dob.getMonth() + 1 === month) {
-        await sendMail({
-          to: c.email,
-          subject: "🎉 Happy Birthday from Elite Fitness",
-          html: birthdayTemplate(c.name),
-        });
-      }
+  for (let user of users) {
+    const dob = new Date(user.dateOfBirth);
+    const ann = new Date(user.anniversary);
+
+    if (
+      dob &&
+      dob.getDate() === day &&
+      dob.getMonth() + 1 === month
+    ) {
+      await sendBirthdayMail(user.email, user.client);
     }
 
-    if (c.anniversaryDate) {
-      const ann = new Date(c.anniversaryDate);
-      if (ann.getDate() === day && ann.getMonth() + 1 === month) {
-        await sendMail({
-          to: c.email,
-          subject: "🎊 Happy Anniversary",
-          html: anniversaryTemplate(c.name),
-        });
-      }
+    if (
+      ann &&
+      ann.getDate() === day &&
+      ann.getMonth() + 1 === month
+    ) {
+      await sendAnniversaryMail(user.email, user.client);
     }
   }
 });
