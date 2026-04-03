@@ -211,13 +211,6 @@ router.get("/", async (req, res) => {
 // 🔁 Renew Membership
 // ------------------
 router.put("/renew/:id", async (req, res) => {
-  if (updated.email) {
-  await sendRenewalMail(
-    updated.email,
-    updated.client,
-    updated.endDate
-  );
-}
   try {
     const {
       joiningDate,
@@ -229,13 +222,12 @@ router.put("/renew/:id", async (req, res) => {
       amountPaid,
       remarks,
       trainer,
-      paymentMethod, // ✅ READ FROM FRONTEND
+      paymentMethod,
     } = req.body;
 
     const client = await GymBill.findById(req.params.id);
     if (!client) return res.status(404).json({ message: "Client not found" });
 
-    // 1️⃣ MOVE CURRENT CYCLE → RENEWAL HISTORY
     const previousCycle = {
       joiningDate: client.joiningDate,
       endDate: client.endDate,
@@ -247,12 +239,9 @@ router.put("/renew/:id", async (req, res) => {
       balance: client.balance,
       remarks: client.remarks,
       trainer: client.appointTrainer,
-
-      // ⭐⭐ THIS IS THE FIX ⭐⭐
       modeOfPayment: client.modeOfPayment || client.initialPaymentMode,
     };
 
-    // 2️⃣ CALCULATE NEW VALUES
     const priceNum = Number(price) || 0;
     const adm = Number(admissionCharges) || 0;
     const disc = Number(discountAmount) || 0;
@@ -260,11 +249,10 @@ router.put("/renew/:id", async (req, res) => {
 
     const newBalance = priceNum + adm - disc - paid;
 
-    // 3️⃣ UPDATE MAIN DOCUMENT
     const updated = await GymBill.findByIdAndUpdate(
       req.params.id,
       {
-        $push: { renewalHistory: previousCycle }, // ✅ history saved
+        $push: { renewalHistory: previousCycle },
         joiningDate,
         endDate,
         package: pkg,
@@ -275,19 +263,26 @@ router.put("/renew/:id", async (req, res) => {
         balance: newBalance,
         remarks,
         appointTrainer: trainer,
-
-        // ⭐⭐ SAVE NEW PAYMENT MODE ⭐⭐
         modeOfPayment: paymentMethod,
-
         status: "Active",
       },
       { new: true }
     );
 
+    // ✅ MOVE EMAIL HERE
+    if (updated.email) {
+      await sendRenewalMail(
+        updated.email,
+        updated.client,
+        updated.endDate
+      );
+    }
+
     res.status(200).json({
       message: "Renewal updated successfully",
       data: updated,
     });
+
   } catch (err) {
     console.error("Renewal error:", err);
     res.status(500).json({ error: err.message });
